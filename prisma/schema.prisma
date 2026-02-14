@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  clerkId       String    @unique
+  email         String    @unique
+  username      String    @unique
+  displayName   String?
+  avatarUrl     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  debates       Debate[]
+}
+
+model Debate {
+  id                String   @id @default(cuid())
+  userId            String?
+  topic             String
+  sideAArgument     String
+  sideBArgument     String
+  winner            String   // 'A', 'B', or 'TIE'
+  verdictSummary    String
+  sideAAnalysis     Json     // { strengths: [], weaknesses: [] }
+  sideBAnalysis     Json
+  detailedReasoning String
+  sideAScore        Int
+  sideBScore        Int
+  isPublic          Boolean  @default(false)
+  createdAt         DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([createdAt(sort: Desc)])
+}
