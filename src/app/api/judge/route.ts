@@ -5,8 +5,6 @@ import { prisma } from "@/lib/db";
 import { checkRateLimit } from "@/lib/rate-limit";
 import type { VerdictResponse } from "@/types/debate";
 
-const anthropic = new Anthropic();
-
 function extractJson(text: string): VerdictResponse {
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error("No JSON found in response");
@@ -84,13 +82,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
+    const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
     if (!apiKey) {
       return NextResponse.json(
         { error: "AI service not configured" },
         { status: 503 }
       );
     }
+
+    const anthropic = new Anthropic({ apiKey });
 
     const systemPrompt = `You are an impartial AI judge tasked with evaluating two opposing arguments and determining which presents a stronger case.
 
